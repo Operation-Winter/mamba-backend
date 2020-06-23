@@ -36,12 +36,22 @@ jobs:
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
             ${TAGS}
+              -
+      - name: Docker Login
+        if: success()
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" 
       - name: Build and push image
+        if: success()
         run: |
           docker buildx build \
             --output "type=image,push=true" \
             ${{ steps.prepare.outputs.buildx_args }} \
             .
       - name: Docker Check Manifest
+        if: always()
         run: |
           docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
