@@ -1,5 +1,5 @@
-FROM arm64v8/openjdk
-# FROM amd64/openjdk
+ARG ARCH=
+FROM ${ARCH}/openjdk
 
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} mamba.jar
