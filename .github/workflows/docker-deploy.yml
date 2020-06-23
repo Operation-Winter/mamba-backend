@@ -50,7 +50,3 @@ jobs:
             --output "type=image,push=true" \
             ${{ steps.prepare.outputs.buildx_args }} \
             .
-      - name: Docker Check Manifest
-        if: always()
-        run: |
-          docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
