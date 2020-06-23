@@ -1,5 +1,9 @@
 name: Deploy tag to DockerHub
-on: release
+on: 
+  push:
+    tags:
+      - v*
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,12 +18,29 @@ jobs:
         run: ./mvnw clean package
       - name: Install buildx
         id: buildx
-        uses: crazy-max/ghaction-docker-buildx@v1
+        uses: crazy-max/ghaction-docker-buildx@v3
         with:
-          version: latest
-      - name: Build the image
+          buildx-version: latest
+          qemu-version: latest
+      - name: Prepare
+        id: prepare
+        run: |
+          DOCKER_IMAGE=bladetitan/mamba-backend
+          DOCKER_PLATFORMS=linux/amd64,linux/arm64
+          VERSION=${GITHUB_REF#refs/tags/v}
+          TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"
+          echo ::set-output name=docker_image::${DOCKER_IMAGE}
+          echo ::set-output name=version::${VERSION}
+          echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
+            --build-arg VERSION=${VERSION} \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg VCS_REF=${GITHUB_SHA::8} \
+            ${TAGS} --file ./Dockerfile ./test
+      - name: Build and push image
         run: |
           docker buildx build \
-            --tag bladetitan/mamba-backend:latest \
-            --platform linux/amd64,linux/arm64 .
-            --output=type=registry
+            --output "type=image,push=true" \
+            ${{ steps.prepare.outputs.buildx_args }}
+      - name: Docker Check Manifest
+        run: |
+          docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
