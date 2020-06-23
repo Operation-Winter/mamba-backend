@@ -1,5 +1,4 @@
-ARG ARCH=
-FROM ${ARCH}/openjdk
+FROM openjdk
 
 ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} mamba.jar

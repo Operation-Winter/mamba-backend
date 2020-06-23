@@ -9,6 +9,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 14
+      - name: Build with Maven
+        run: ./mvnw clean package
       - name: Install buildx
         id: buildx
         uses: crazy-max/ghaction-docker-buildx@v1
@@ -18,4 +24,5 @@ jobs:
       run: |
         docker buildx build \
           --tag bladetitan/mamba-backend:latest \
-          --platform linux/amd64,linux/arm/v7,linux/arm64 .
+          --platform linux/amd64,linux/arm64 .
+          --output=type=registry
