@@ -16,37 +16,8 @@ jobs:
           java-version: 14
       - name: Build with Maven
         run: ./mvnw clean package
-      - name: Install buildx
-        id: buildx
-        uses: crazy-max/ghaction-docker-buildx@v3
-        with:
-          buildx-version: latest
-          qemu-version: latest
-      - name: Prepare
-        id: prepare
-        run: |
-          DOCKER_IMAGE=bladetitan/mamba-backend
-          DOCKER_PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7
-          VERSION=${GITHUB_REF#refs/tags/v}
-          TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"
-          echo ::set-output name=docker_image::${DOCKER_IMAGE}
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
-            --build-arg VERSION=${VERSION} \
-            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-            --build-arg VCS_REF=${GITHUB_SHA::8} \
-            ${TAGS}
-      - name: Docker Login
-        if: success()
+      - name: Docker compose and Deploy
         env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DEPLOY_SERVER_ADDRESS: ${{ secrets.DEPLOY_SERVER_ADDRESS }}
         run: |
-          echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
-      - name: Build and push image
-        if: success()
-        run: |
-          docker buildx build \
-            --output "type=image,push=true" \
-            ${{ steps.prepare.outputs.buildx_args }} \
-            .
+          docker-compose -H "${DEPLOY_SERVER_ADDRESS}" up -d
