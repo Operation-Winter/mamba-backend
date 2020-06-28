@@ -16,11 +16,14 @@ jobs:
           java-version: 14
       - name: Build with Maven
         run: ./mvnw clean package
-      - name: Docker compose and Deploy
+      - name: Add SSH key
         env:
-          DEPLOY_SERVER_ADDRESS: ${{ secrets.DEPLOY_SERVER_ADDRESS }}
           DEPLOY_SERVER_KEY: ${{ secrets.DEPLOY_SERVER_KEY }}
         run: |
           eval "$(ssh-agent -s)"
           ssh-add - <<< "${DEPLOY_SERVER_KEY}"
+      - name: Docker compose and Deploy
+        env:
+          DEPLOY_SERVER_ADDRESS: ${{ secrets.DEPLOY_SERVER_ADDRESS }}
+        run: |
           docker-compose -H "${DEPLOY_SERVER_ADDRESS}" up -d
