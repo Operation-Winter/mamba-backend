@@ -1,4 +1,4 @@
-name: Deploy tag to DockerHub
+name: Deploy tag to Server
 on: 
   push:
     tags:
@@ -21,8 +21,8 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SERVER_KEY }}
           ssh-host: mamba.armandkamffer.co.za
-      - name: Docker compose and Deploy
+      - name: Docker compose and Deploy to Server
         env:
           DEPLOY_SERVER_ADDRESS: ${{ secrets.DEPLOY_SERVER_ADDRESS }}
         run: |
-          docker-compose -H "${DEPLOY_SERVER_ADDRESS}" up -d --force-recreate
+          docker-compose -H "${DEPLOY_SERVER_ADDRESS}" up -d --build
