@@ -17,11 +17,10 @@ jobs:
       - name: Build with Maven
         run: ./mvnw clean package
       - name: Add SSH key
-        env:
-          DEPLOY_SERVER_KEY: ${{ secrets.DEPLOY_SERVER_KEY }}
-        run: |
-          eval "$(ssh-agent -s)"
-          ssh-add - <<< "${DEPLOY_SERVER_KEY}"
+        uses: kielabokkie/ssh-key-and-known-hosts-action@v1
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SERVER_KEY }}
+          ssh-host: mamba.armandkamffer.co.za
       - name: Docker compose and Deploy
         env:
           DEPLOY_SERVER_ADDRESS: ${{ secrets.DEPLOY_SERVER_ADDRESS }}
