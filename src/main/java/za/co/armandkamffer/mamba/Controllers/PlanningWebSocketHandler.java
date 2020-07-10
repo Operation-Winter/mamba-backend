@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 
@@ -17,8 +18,8 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
     @Override
     public void handleMessage(org.springframework.web.socket.WebSocketSession session, WebSocketMessage<?> message)
             throws Exception {
-        // TODO Auto-generated method stub
-        logger.info(message.getPayload().toString());
+        TextMessage sendMessage = new TextMessage(message.getPayload().toString());
+        session.sendMessage(sendMessage);
     }
 
     @Override
