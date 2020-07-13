@@ -1,5 +1,7 @@
 package za.co.armandkamffer.mamba.Controllers;
 
+import java.util.UUID;
+
 import javax.servlet.annotation.WebServlet;
 
 import org.slf4j.Logger;
@@ -10,10 +12,12 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 
-@WebServlet
-public class PlanningWebSocketHandler implements WebSocketHandler {
+import za.co.armandkamffer.mamba.Sessions.PlanningSessionManager;
 
-    Logger logger = LoggerFactory.getLogger(PlanningWebSocketHandler.class);
+@WebServlet
+public class PlanningHostWebSocketHandler implements WebSocketHandler {
+    private UUID sessionID; 
+    Logger logger = LoggerFactory.getLogger(PlanningHostWebSocketHandler.class);
 
     @Override
     public void handleMessage(org.springframework.web.socket.WebSocketSession session, WebSocketMessage<?> message)
@@ -24,8 +28,7 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(org.springframework.web.socket.WebSocketSession session) throws Exception {
-        // TODO Auto-generated method stub
-
+        sessionID = PlanningSessionManager.getInstance().createPlanningSession();
     }
 
     @Override
@@ -39,12 +42,10 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
     public void afterConnectionClosed(org.springframework.web.socket.WebSocketSession session, CloseStatus closeStatus)
             throws Exception {
         // TODO Auto-generated method stub
-
     }
 
     @Override
     public boolean supportsPartialMessages() {
-        // TODO Auto-generated method stub
         return false;
     }
 
