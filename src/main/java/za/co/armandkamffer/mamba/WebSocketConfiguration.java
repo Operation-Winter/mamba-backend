@@ -5,13 +5,14 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-import za.co.armandkamffer.mamba.Controllers.PlanningWebSocketHandler;
+import za.co.armandkamffer.mamba.Controllers.*;
 
 @Configuration
 @EnableWebSocket
 public class WebSocketConfiguration implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new PlanningWebSocketHandler(), "/planning").setAllowedOrigins("*");
+        registry.addHandler(new PlanningHostWebSocketHandler(), "/planning/host").setAllowedOrigins("*");
+        registry.addHandler(new PlanningJoinWebSocketHandler(), "/planning/join").setAllowedOrigins("*");
     }
 }
