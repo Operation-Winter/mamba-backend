@@ -6,12 +6,6 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Debug (Launch) - Current File",
-            "request": "launch",
-            "mainClass": "${file}"
-        },
-        {
-            "type": "java",
             "name": "Debug (Launch)-MambaApplication<mamba>",
             "request": "launch",
             "mainClass": "za.co.armandkamffer.mamba.MambaApplication",
