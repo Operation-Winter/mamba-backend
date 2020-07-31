@@ -1,5 +1,6 @@
 package za.co.armandkamffer.mamba.Controllers;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import javax.servlet.annotation.WebServlet;
@@ -11,28 +12,25 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 
-import za.co.armandkamffer.mamba.Commands.Models.Command;
 import za.co.armandkamffer.mamba.Sessions.PlanningSessionManager;
 
 @WebServlet
 public class PlanningHostWebSocketHandler implements WebSocketHandler {
-    private UUID sessionID;
-    Logger logger = LoggerFactory.getLogger(PlanningHostWebSocketHandler.class);
+    private org.springframework.web.socket.WebSocketSession session ;
+    public UUID sessionID;
+    private Logger logger = LoggerFactory.getLogger(PlanningHostWebSocketHandler.class);
+    private PlanningSessionManager planningSessionManager;
 
     @Override
     public void handleMessage(org.springframework.web.socket.WebSocketSession session, WebSocketMessage<?> message)
             throws Exception {
-        Command command = PlanningSessionManager.getInstance().parseHostMessageToCommand(sessionID, message);
-
-        Command testCommand = new Command("NEW_PARTICIPANT", null);
-        BinaryMessage binaryMessage = PlanningSessionManager.getInstance().parseHostCommandToMessage(testCommand);
-
-        session.sendMessage(binaryMessage);
+        planningSessionManager.parseHostMessageToCommand(this, sessionID, message);
     }
 
     @Override
     public void afterConnectionEstablished(org.springframework.web.socket.WebSocketSession session) throws Exception {
-        sessionID = PlanningSessionManager.getInstance().createPlanningSession();
+        this.session = session;
+        planningSessionManager = PlanningSessionManager.getInstance();
     }
 
     @Override
@@ -53,4 +51,7 @@ public class PlanningHostWebSocketHandler implements WebSocketHandler {
         return false;
     }
 
+    public void sendCommand(BinaryMessage binaryMessage) throws IOException {
+        session.sendMessage(binaryMessage);
+    }
 }
