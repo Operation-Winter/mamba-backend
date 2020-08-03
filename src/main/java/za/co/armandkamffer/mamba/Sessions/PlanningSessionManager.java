@@ -1,22 +1,24 @@
 package za.co.armandkamffer.mamba.Sessions;
 
 import java.util.HashMap;
-import java.util.UUID;
 
-import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.WebSocketMessage;
 
 import za.co.armandkamffer.mamba.Commands.PlanningHostWebSocketMessageParser;
+import za.co.armandkamffer.mamba.Commands.PlanningJoinWebSocketMessageParser;
+import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningJoinSessionMessage;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandReceive;
-import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandSend;
+import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandReceive;
 import za.co.armandkamffer.mamba.Controllers.PlanningHostWebSocketHandler;
+import za.co.armandkamffer.mamba.Controllers.PlanningJoinWebSocketHandler;
+import za.co.armandkamffer.mamba.Models.Planning.User;
 
 public final class PlanningSessionManager {
     private static PlanningSessionManager INSTANCE;
-    private HashMap<UUID, PlanningSession> sessions;
-    private HashMap<UUID, PlanningHostWebSocketHandler> hosts;
+    private HashMap<String, PlanningSession> sessions;
 
-    private PlanningHostWebSocketMessageParser parser;
+    private PlanningHostWebSocketMessageParser hostCommandParser;
+    private PlanningJoinWebSocketMessageParser joinCommandParser;
 
     public synchronized static PlanningSessionManager getInstance() {
         if (INSTANCE == null) {
@@ -26,34 +28,39 @@ public final class PlanningSessionManager {
     }
 
     private PlanningSessionManager() {
-        sessions = new HashMap<UUID, PlanningSession>();
-        hosts = new HashMap<UUID, PlanningHostWebSocketHandler>();
-        parser = new PlanningHostWebSocketMessageParser();
+        sessions = new HashMap<String, PlanningSession>();
+        hostCommandParser = new PlanningHostWebSocketMessageParser();
+        joinCommandParser = new PlanningJoinWebSocketMessageParser();
     }
 
-    public UUID createPlanningSession() {
-        PlanningSession session = new PlanningSession();
-        sessions.put(session.sessionID, session);
-        return session.sessionID;
+    private String createSessionID() {
+        String sessionID;
+        do {
+            Integer sessionCount = sessions.size();
+            sessionID = String.format("%06d", sessionCount);
+        } while (sessions.get(sessionID) != null);
+
+        return sessionID;
     }
 
-    public void parseHostMessageToCommand(PlanningHostWebSocketHandler webSocketHandler, UUID sessionID, WebSocketMessage<?> message) {
-        PlanningHostCommandReceive command = parser.parseMessageToCommand(message);
+    public void parseHostMessageToCommand(PlanningHostWebSocketHandler webSocketHandler, String sessionID, WebSocketMessage<?> message) {
+        PlanningHostCommandReceive command = hostCommandParser.parseMessageToCommand(message);
         executeHostCommand(webSocketHandler, command, sessionID);
     }
 
-    public BinaryMessage parseHostCommandToMessage(PlanningHostCommandSend command) {
-        BinaryMessage message = parser.parseCommandToMessage(command);
-        return message;
+    public void parseJoinMessageToCommand(PlanningJoinWebSocketHandler webSocketHandler, String sessionID, WebSocketMessage<?> message) {
+        PlanningJoinCommandReceive command = joinCommandParser.parseMessageToCommand(message);
+        executeJoinCommand(webSocketHandler, command, sessionID);
     }
 
-    private void executeHostCommand(PlanningHostWebSocketHandler webSocketHandler, PlanningHostCommandReceive command, UUID sessionID) {
+    private void executeHostCommand(PlanningHostWebSocketHandler webSocketHandler, PlanningHostCommandReceive command, String sessionID) {
         switch (command.type) {
             case START_SESSION:
-                UUID newSessionID = createPlanningSession();
+                String newSessionID = createSessionID();
+                PlanningSession session = new PlanningSession(newSessionID, webSocketHandler);
                 webSocketHandler.sessionID = newSessionID;
-                hosts.put(newSessionID, webSocketHandler);
-                sessions.get(newSessionID).executeCommand(command);
+                sessions.put(newSessionID, session);
+                session.executeCommand(command);
                 break;
         
             default:
@@ -61,15 +68,23 @@ public final class PlanningSessionManager {
         }
     }
 
-    public void sendCommandToHost(PlanningHostCommandSend command, UUID sessionID) {
-        BinaryMessage binaryMessage = parseHostCommandToMessage(command);
-        PlanningHostWebSocketHandler hostWebSocketHandler = hosts.get(sessionID);
+    private void executeJoinCommand(PlanningJoinWebSocketHandler webSocketHandler, PlanningJoinCommandReceive command, String sessionID) {
+        switch (command.type) {
+            case JOIN_SESSION:
+                PlanningJoinSessionMessage message = joinCommandParser.parseStartSessionMessage(command.message);
+                PlanningSession session = sessions.get(message.sessionCode);
 
-        try {
-            hostWebSocketHandler.sendCommand(binaryMessage);
-        } catch (Exception e) {
-            //TODO: handle exception
-        }
+                if (session == null) {
+                    // TODO: If invalid send back invalid_session command
+                }
+
+                User newUser = new User(message.participantName, webSocketHandler);
+                webSocketHandler.sessionID = session.sessionID;
+                session.addUser(newUser);
+                break;
         
+            default:
+                break;
+        }
     }
 }

@@ -1,7 +1,6 @@
 package za.co.armandkamffer.mamba.Controllers;
 
 import java.io.IOException;
-import java.util.UUID;
 
 import javax.servlet.annotation.WebServlet;
 
@@ -16,10 +15,10 @@ import za.co.armandkamffer.mamba.Sessions.PlanningSessionManager;
 
 @WebServlet
 public class PlanningHostWebSocketHandler implements WebSocketHandler {
-    private org.springframework.web.socket.WebSocketSession session ;
-    public UUID sessionID;
+    private org.springframework.web.socket.WebSocketSession session;
     private Logger logger = LoggerFactory.getLogger(PlanningHostWebSocketHandler.class);
     private PlanningSessionManager planningSessionManager;
+    public String sessionID;
 
     @Override
     public void handleMessage(org.springframework.web.socket.WebSocketSession session, WebSocketMessage<?> message)
@@ -37,7 +36,6 @@ public class PlanningHostWebSocketHandler implements WebSocketHandler {
     public void handleTransportError(org.springframework.web.socket.WebSocketSession session, Throwable exception)
             throws Exception {
         // TODO Auto-generated method stub
-
     }
 
     @Override
