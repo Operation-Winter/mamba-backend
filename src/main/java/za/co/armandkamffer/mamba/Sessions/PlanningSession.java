@@ -49,7 +49,8 @@ public class PlanningSession {
     private PlanningSessionStateRepresentable createSessionStateRepresentable() {
         return new PlanningSessionStateRepresentable(sessionName, 
                                                      sessionID,
-                                                     availableCards);
+                                                     availableCards,
+                                                     users);
     }
 
     private void sendCurrentStateToAll() {
