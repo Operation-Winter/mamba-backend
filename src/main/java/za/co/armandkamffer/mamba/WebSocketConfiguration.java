@@ -27,17 +27,11 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
     @Bean
     public HandshakeInterceptor planningInterceptor() {
         return new HandshakeInterceptor() {
-            public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, 
-                  WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
-
-                // Get the URI segment corresponding to the auction id during handshake
+            public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
                 String path = request.getURI().getPath();
                 Integer lastIndex = path.lastIndexOf('/');
                 String type = path.substring(lastIndex + 1);
-                
-                // TODO: Create Enum for Host/Participant
 
-                // This will be added to the websocket session
                 attributes.put("type", type);
                 return true;
             }

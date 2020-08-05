@@ -58,7 +58,7 @@ public final class PlanningSessionManager {
             case START_SESSION:
                 String newSessionID = createSessionID();
                 PlanningSession planningSession = new PlanningSession(newSessionID, webSocketHandler);
-                webSocketHandler.addTag(session, newSessionID);
+                webSocketHandler.addTag(session, "host-" + newSessionID);
                 sessions.put(newSessionID, planningSession);
                 planningSession.executeCommand(command);
                 break;
@@ -79,7 +79,7 @@ public final class PlanningSessionManager {
                 }
 
                 User newUser = new User(message.participantName);
-                webSocketHandler.addTag(session, planningSession.sessionID);
+                webSocketHandler.addTag(session, "join-" + planningSession.sessionID);
                 planningSession.addUser(newUser);
                 break;
         

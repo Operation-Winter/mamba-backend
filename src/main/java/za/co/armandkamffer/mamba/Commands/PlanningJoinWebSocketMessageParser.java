@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
@@ -15,14 +17,23 @@ import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandRec
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandSend;
 
 public class PlanningJoinWebSocketMessageParser {
+    private Logger logger = LoggerFactory.getLogger(PlanningJoinWebSocketMessageParser.class);
+
     public PlanningJoinCommandReceive parseMessageToCommand(WebSocketMessage<?> webSocketMessage) throws Error {
         String webSocketMessageString = parseMessageToString(webSocketMessage);
         return parseStringToCommand(webSocketMessageString);
     }
 
-    public BinaryMessage parseCommandToMessage(PlanningJoinCommandSend command) {
+    public BinaryMessage parseCommandToBinaryMessage(PlanningJoinCommandSend command) {
         String jsonMessage = new Gson().toJson(command);
+        logger.info("PlanningJoin command: {}", jsonMessage);
         return new BinaryMessage(jsonMessage.getBytes());
+    }
+
+    public TextMessage parseCommandToTextMessage(PlanningJoinCommandSend command) {
+        String jsonMessage = new Gson().toJson(command);
+        logger.info("PlanningHost command: {}", jsonMessage);
+        return new TextMessage(jsonMessage);
     }
 
     private String parseMessageToString(WebSocketMessage<?> webSocketMessage) throws Error {

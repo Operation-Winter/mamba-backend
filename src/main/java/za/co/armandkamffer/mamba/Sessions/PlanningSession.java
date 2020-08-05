@@ -6,7 +6,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.BinaryMessage;
+import org.springframework.web.socket.TextMessage;
 
 import za.co.armandkamffer.mamba.Commands.PlanningHostWebSocketMessageParser;
 import za.co.armandkamffer.mamba.Commands.PlanningJoinWebSocketMessageParser;
@@ -23,6 +26,7 @@ import za.co.armandkamffer.mamba.Models.Planning.PlanningSessionStateRepresentab
 import za.co.armandkamffer.mamba.Models.Planning.User;
 
 public class PlanningSession {
+    private Logger logger = LoggerFactory.getLogger(PlanningSession.class);
     private PlanningHostWebSocketMessageParser hostCommandParser;
     private PlanningJoinWebSocketMessageParser joinCommandParser;
     private String sessionName;
@@ -94,12 +98,12 @@ public class PlanningSession {
     }
     
     private void sendCommandToHost(PlanningHostCommandSend command) {
-        BinaryMessage binaryMessage = hostCommandParser.parseCommandToMessage(command);
-        webSocketHandler.sendMessage(sessionID, "host", binaryMessage);
+        BinaryMessage textMessage = hostCommandParser.parseCommandToBinaryMessage(command);
+        webSocketHandler.sendMessage(sessionID, "host", textMessage);
     }
 
     private void sendCommandToPartitipants(PlanningJoinCommandSend command) {
-        BinaryMessage binaryMessage = joinCommandParser.parseCommandToMessage(command);
-        webSocketHandler.sendMessage(sessionID, "join", binaryMessage);
+        BinaryMessage textMessage = joinCommandParser.parseCommandToBinaryMessage(command);
+        webSocketHandler.sendMessage(sessionID, "join", textMessage);
     }
 }

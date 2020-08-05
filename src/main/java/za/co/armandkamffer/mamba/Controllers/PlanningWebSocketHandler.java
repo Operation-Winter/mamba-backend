@@ -22,10 +22,8 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
         logger.info("Command received from {}:{}", session.getId(), type);
 
         if(type.equals("host")) {
-            addTag(session, "host-" + type);
             planningSessionManager.parseHostMessageToCommand(this, session, message);
         } else if(type.equals("join")) {
-            addTag(session, "join-" + type);
             planningSessionManager.parseJoinMessageToCommand(this, session, message);
         }
     }
@@ -60,9 +58,13 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
     public void sendMessage(String toTag, String toType, WebSocketMessage<?> message) {
         String tag = toType + "-" + toTag;
         tags.getObjectsWith(tag).parallelStream().forEach(sessionTo -> {
-            try {    
-                sessionTo.sendMessage(message);
-                logger.info("Message sent from session {} to session with tag {}", sessionTo.getId(), toTag);
+            try {
+                if (sessionTo.isOpen()) {
+                    sessionTo.sendMessage(message);
+                    logger.info("Message sent from session {} to session with tag {}", sessionTo.getId(), tag);
+                } else {
+                    logger.warn("Message not sent from session {} to session with tag {}", sessionTo.getId(), tag);
+                }
             } catch (Exception ex) {
                 logger.warn("Error sending message to session ID: " + sessionTo.getId(), ex);
             }
@@ -71,11 +73,11 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
 
     public void addTag(WebSocketSession session, String tag) {
         tags.add(session, tag);
-        logger.info("Session ID: {} received tag {}", session.getId(), tag);
+        logger.info("Add tag: Session ID: {} received tag {}", session.getId(), tag);
     }
     
     private void removeTag(WebSocketSession session, String tag) {
         tags.removeTagFrom(session, tag);
-        logger.info("Session ID: {} removed tag {}", session.getId(), tag);
+        logger.info("Remove tag: Session ID: {} removed tag {}", session.getId(), tag);
     }
 }
