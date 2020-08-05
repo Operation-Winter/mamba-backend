@@ -1,0 +1,103 @@
+<html>
+<head>
+    <style>
+        #messages {
+            text-align: left;
+            padding: 1em;
+            margin: 1em;
+            border: 1px solid black;
+        }
+    </style>
+    <title>Mamba Planning Host</title>
+</head>
+<body>
+<div class="container">
+    <h1>Mamba Planning Host</h1>
+    <div id="messages" class="messages"></div>
+
+    <div class="start-command-fields">
+        <b>Session name: </b><input id="sessionName" />
+        <button id="startCommand">Start Session Command</button>
+    </div>
+
+    <div class="input-fields">
+        <p>Send custom command JSON:</p>
+        <textarea name="message" id="message" cols="100" rows="20"></textarea>
+        <button id="send">Send</button>
+    </div>
+</div>
+</body>
+<script>
+    const messageWindow = document.getElementById("messages");
+    const sendButton = document.getElementById("send");
+    const messageInput = document.getElementById("message");
+ 
+    const socket = new WebSocket("ws://localhost:8080/planning/host");
+
+    socket.onopen = function (event) {
+        addMessageToWindow("Connected");
+    };
+ 
+    socket.onmessage = function (event) {
+        let fileReader = new FileReader()
+        
+        fileReader.onload = function (e) {
+            let command = new TextDecoder("utf8").decode(e.target.result);
+            addMessageToWindow(`<p style="background-color:lightcyan">Got Message: ${command}</p>`);
+        }
+        fileReader.readAsArrayBuffer(event.data);
+    };
+ 
+    sendButton.onclick = function (event) {
+        sendMessage(messageInput.value);
+        messageInput.value = "";
+    };
+ 
+    function sendMessage(message) {
+        socket.send(new TextEncoder().encode(message));
+        addMessageToWindow('<p style="background-color:lightcoral">Sent Message: ' + message + "</p>");
+    }
+ 
+    function addMessageToWindow(message) {
+        messageWindow.innerHTML += `<div>${message}</div>`
+    }
+
+    // Commands
+    const startSessionCommandButton = document.getElementById("startCommand");
+    const sessionNameInput = document.getElementById("sessionName");
+
+    startSessionCommandButton.onclick = function (event) {
+        let command = JSON.stringify(startSessionCommand(sessionNameInput.value));
+        sendMessage(command);
+        sessionNameInput.value = "";
+    };
+
+    class Command {
+        constructor(type, message) {
+            this.type = type
+            this.message = message
+        }
+    }
+
+    function startSessionCommand(sessionName) {
+        let message = {
+            sessionName: sessionName,
+            availableCards: [
+                "ZERO",
+                "ONE",
+                "TWO",
+                "THREE",
+                "FIVE",
+                "EIGHT",
+                "THIRTEEN",
+                "TWENTY",
+                "FOURTY",
+                "HUNDRED",
+                "QUESTION",
+                "COFFEE"
+            ]
+        }
+        return new Command("START_SESSION", message)
+    }
+</script>
+</html>
