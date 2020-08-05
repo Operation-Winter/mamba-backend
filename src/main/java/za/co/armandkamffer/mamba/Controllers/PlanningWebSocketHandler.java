@@ -21,10 +21,11 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
         String type = (String) session.getAttributes().get("type");
         logger.info("Command received from {}:{}", session.getId(), type);
 
-        addTag(session, type);
         if(type.equals("host")) {
+            addTag(session, "host-" + type);
             planningSessionManager.parseHostMessageToCommand(this, session, message);
         } else if(type.equals("join")) {
+            addTag(session, "join-" + type);
             planningSessionManager.parseJoinMessageToCommand(this, session, message);
         }
     }
@@ -57,7 +58,8 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
     }
 
     public void sendMessage(String toTag, String toType, WebSocketMessage<?> message) {
-        tags.getObjectsWith(toTag).parallelStream().forEach(sessionTo -> {
+        String tag = toType + "-" + toTag;
+        tags.getObjectsWith(tag).parallelStream().forEach(sessionTo -> {
             try {    
                 sessionTo.sendMessage(message);
                 logger.info("Message sent from session {} to session with tag {}", sessionTo.getId(), toTag);
