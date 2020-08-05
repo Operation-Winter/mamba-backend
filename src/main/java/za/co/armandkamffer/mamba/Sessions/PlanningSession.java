@@ -16,7 +16,7 @@ import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningHostSta
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandSend;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandSend;
-import za.co.armandkamffer.mamba.Controllers.PlanningHostWebSocketHandler;
+import za.co.armandkamffer.mamba.Controllers.PlanningWebSocketHandler;
 import za.co.armandkamffer.mamba.Models.Planning.Card;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningSessionState;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningSessionStateRepresentable;
@@ -29,12 +29,12 @@ public class PlanningSession {
     private ArrayList<User> users;
     private Card[] availableCards;
     private PlanningSessionState state;
-    private PlanningHostWebSocketHandler hostWebSocketHandler;
+    private PlanningWebSocketHandler webSocketHandler;
     public String sessionID;
 
-    public PlanningSession(String sessionID, PlanningHostWebSocketHandler hostWebSocketHandler) {
+    public PlanningSession(String sessionID, PlanningWebSocketHandler webSocketHandler) {
         this.sessionID = sessionID;
-        this.hostWebSocketHandler = hostWebSocketHandler;
+        this.webSocketHandler = webSocketHandler;
         users = new ArrayList<User>();
         state = PlanningSessionState.NONE;
         hostCommandParser = new PlanningHostWebSocketMessageParser();
@@ -95,23 +95,11 @@ public class PlanningSession {
     
     private void sendCommandToHost(PlanningHostCommandSend command) {
         BinaryMessage binaryMessage = hostCommandParser.parseCommandToMessage(command);
-
-        try {
-            hostWebSocketHandler.sendCommand(binaryMessage);
-        } catch (Exception e) {
-            //TODO: handle exception
-        }
+        webSocketHandler.sendMessage(sessionID, "host", binaryMessage);
     }
 
     private void sendCommandToPartitipants(PlanningJoinCommandSend command) {
         BinaryMessage binaryMessage = joinCommandParser.parseCommandToMessage(command);
-
-        for (User user : users) {
-            try {
-                user.webSocketHandler.sendCommand(binaryMessage);
-            } catch (Exception e) {
-                //TODO: handle exception
-            }
-        }
+        webSocketHandler.sendMessage(sessionID, "join", binaryMessage);
     }
 }
