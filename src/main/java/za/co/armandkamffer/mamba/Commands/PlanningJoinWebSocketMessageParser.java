@@ -32,7 +32,7 @@ public class PlanningJoinWebSocketMessageParser {
 
     public TextMessage parseCommandToTextMessage(PlanningJoinCommandSend command) {
         String jsonMessage = new Gson().toJson(command);
-        logger.info("PlanningHost command: {}", jsonMessage);
+        logger.info("PlanningJoin command: {}", jsonMessage);
         return new TextMessage(jsonMessage);
     }
 
