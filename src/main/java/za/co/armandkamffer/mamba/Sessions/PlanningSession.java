@@ -51,6 +51,7 @@ public class PlanningSession {
     public void addUser(PlanningUser user) {
         users.add(user);
         sendCurrentStateToAll();
+        logger.info("Participant {} added to {}", user.name, sessionID);
     }
 
     private PlanningSessionStateRepresentable createSessionStateRepresentable() {
@@ -85,27 +86,38 @@ public class PlanningSession {
 
         sendCommandToHost(new PlanningHostCommandSend(hostCommandType, message));
         sendCommandToPartitipants(new PlanningJoinCommandSend(joinCommandType, message));
+        logger.info("Current state {} sent to all on {}", state, sessionID);
     }
 
     public void executeCommand(PlanningHostCommandReceive command) {
+        logger.info("{} command received on {}", command.type, sessionID);
         switch (command.type) {
             case START_SESSION:
-                PlanningHostStartSessionMessage hostStartMessage = hostCommandParser.parseStartSessionMessage(command.message);
-                sessionName = hostStartMessage.sessionName;
-                availableCards = hostStartMessage.availableCards;
-                sendCurrentStateToAll();
+                executeStartSessionCommand(command);
                 break;
 
             case ADD_TICKET:
-                PlanningAddTicketMessage addTicketMessage = hostCommandParser.parseAddTicketMessage(command.message);
-                ticket = new PlanningTicket(addTicketMessage.identifier, addTicketMessage.description);
-                state = PlanningSessionState.VOTING;
-                sendCurrentStateToAll();
+                executeAddTicketCommand(command);
                 break;
 
             default:
+                logger.warn("Command received with no implementation: {}", command.type);
                 break;
         }
+    }
+
+    private void executeStartSessionCommand(PlanningHostCommandReceive command) {
+        PlanningHostStartSessionMessage hostStartMessage = hostCommandParser.parseStartSessionMessage(command.message);
+        sessionName = hostStartMessage.sessionName;
+        availableCards = hostStartMessage.availableCards;
+        sendCurrentStateToAll();
+    }
+
+    private void executeAddTicketCommand(PlanningHostCommandReceive command) {
+        PlanningAddTicketMessage addTicketMessage = hostCommandParser.parseAddTicketMessage(command.message);
+        ticket = new PlanningTicket(addTicketMessage.identifier, addTicketMessage.description);
+        state = PlanningSessionState.VOTING;
+        sendCurrentStateToAll();
     }
     
     private void sendCommandToHost(PlanningHostCommandSend command) {
