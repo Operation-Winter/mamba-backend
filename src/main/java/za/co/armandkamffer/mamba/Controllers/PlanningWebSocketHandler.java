@@ -8,23 +8,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.CloseStatus;
 
-import za.co.armandkamffer.mamba.Models.Planning.Tags;
+import za.co.armandkamffer.mamba.Models.Planning.PlanningSessionTags;
 import za.co.armandkamffer.mamba.Sessions.PlanningSessionManager;
 
 public class PlanningWebSocketHandler implements WebSocketHandler {
     Logger logger = LoggerFactory.getLogger(PlanningWebSocketHandler.class);
     private PlanningSessionManager planningSessionManager = PlanningSessionManager.getInstance();
-    private final Tags<WebSocketSession, String> tags = new Tags<>();
+    private final PlanningSessionTags<WebSocketSession, String> tags = new PlanningSessionTags<>();
 
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
         String type = (String) session.getAttributes().get("type");
-        logger.info("Command received from {}:{}", session.getId(), type);
+        String sessionCode = (String) session.getAttributes().get("sessionCode");
+        logger.info("Command received from {}:{}:{}", session.getId(), type, sessionCode);
 
         if(type.equals("host")) {
-            planningSessionManager.parseHostMessageToCommand(this, session, message);
+            planningSessionManager.parseHostMessageToCommand(this, session, sessionCode, message);
         } else if(type.equals("join")) {
-            planningSessionManager.parseJoinMessageToCommand(this, session, message);
+            planningSessionManager.parseJoinMessageToCommand(this, session, sessionCode, message);
         }
     }
 
@@ -55,15 +56,14 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
         return false;
     }
 
-    public void sendMessage(String toTag, String toType, WebSocketMessage<?> message) {
-        String tag = toType + "-" + toTag;
-        tags.getObjectsWith(tag).parallelStream().forEach(sessionTo -> {
+    public void sendMessage(String toTag, WebSocketMessage<?> message) {
+        tags.getObjectsWith(toTag).parallelStream().forEach(sessionTo -> {
             try {
                 if (sessionTo.isOpen()) {
                     sessionTo.sendMessage(message);
-                    logger.info("Message sent from session {} to session with tag {}", sessionTo.getId(), tag);
+                    logger.info("Message sent from session {} to session with tag {}", sessionTo.getId(), toTag);
                 } else {
-                    logger.warn("Message not sent from session {} to session with tag {}", sessionTo.getId(), tag);
+                    logger.warn("Message not sent from session {} to session with tag {}", sessionTo.getId(), toTag);
                 }
             } catch (Exception ex) {
                 logger.warn("Error sending message to session ID: " + sessionTo.getId(), ex);
@@ -71,7 +71,17 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
         });
     }
 
-    public void addTag(WebSocketSession session, String tag) {
+    public void sendMessage(String toTag, String toType, WebSocketMessage<?> message) {
+        String tag = toType + "-" + toTag;
+        sendMessage(tag, message);
+    }
+
+    public void setSessionCodeTag(WebSocketSession session, String type, String sessionCode) {
+        session.getAttributes().put("sessionCode", sessionCode);
+        addTag(session, type + "-" + sessionCode);
+    }
+
+    private void addTag(WebSocketSession session, String tag) {
         tags.add(session, tag);
         logger.info("Add tag: Session ID: {} received tag {}", session.getId(), tag);
     }

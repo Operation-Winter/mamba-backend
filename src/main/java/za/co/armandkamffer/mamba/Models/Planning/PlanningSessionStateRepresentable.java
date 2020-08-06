@@ -5,19 +5,21 @@ import java.util.ArrayList;
 public class PlanningSessionStateRepresentable {
     private String sessionName;
     private String sessionCode;
-    private Card[] availableCards;
+    private PlanningCard[] availableCards;
     private ArrayList<ParticipantRepresentable> participants;
+    private PlanningTicket ticket;
 
-    public PlanningSessionStateRepresentable(String sessionName, String sessionCode, Card[] availableCards, ArrayList<User> users) {
+    public PlanningSessionStateRepresentable(String sessionName, String sessionCode, PlanningCard[] availableCards, ArrayList<PlanningUser> users, PlanningTicket ticket) {
         this.sessionName = sessionName;
         this.sessionCode = sessionCode;
         this.availableCards = availableCards;
         this.participants = new ArrayList<ParticipantRepresentable>();
         addPartiticpants(users);
+        this.ticket = ticket;
     }
 
-    private void addPartiticpants(ArrayList<User> users) {
-        for (User user : users) {
+    private void addPartiticpants(ArrayList<PlanningUser> users) {
+        for (PlanningUser user : users) {
             ParticipantRepresentable partitipant = new ParticipantRepresentable(user.identifier.toString(), user.name);
             participants.add(partitipant);
         }

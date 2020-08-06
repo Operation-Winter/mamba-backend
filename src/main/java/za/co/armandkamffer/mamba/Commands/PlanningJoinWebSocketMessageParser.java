@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,11 @@ public class PlanningJoinWebSocketMessageParser {
         return new TextMessage(jsonMessage);
     }
 
+    public JsonObject parseMessageToJson(Object message) {
+        String messageString = new Gson().toJson(message);
+        return JsonParser.parseString(messageString).getAsJsonObject();
+    }
+
     private String parseMessageToString(WebSocketMessage<?> webSocketMessage) throws Error {
         ByteBuffer byteBuffer;
 
@@ -54,7 +60,7 @@ public class PlanningJoinWebSocketMessageParser {
         return new Gson().fromJson(commandString, PlanningJoinCommandReceive.class);
     }
 
-    public PlanningJoinSessionMessage parseStartSessionMessage(JsonObject messageString) {
+    public PlanningJoinSessionMessage parseJoinSessionMessage(JsonObject messageString) {
         return new Gson().fromJson(messageString, PlanningJoinSessionMessage.class);
     }
 }

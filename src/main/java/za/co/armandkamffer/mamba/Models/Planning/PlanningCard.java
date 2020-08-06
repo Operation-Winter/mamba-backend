@@ -1,6 +1,6 @@
 package za.co.armandkamffer.mamba.Models.Planning;
 
-public enum Card {
+public enum PlanningCard {
     ZERO,
     ONE,
     TWO,

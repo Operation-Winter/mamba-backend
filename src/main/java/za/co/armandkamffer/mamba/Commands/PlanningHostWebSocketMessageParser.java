@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 
+import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningAddTicketMessage;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningHostStartSessionMessage;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandSend;
@@ -36,6 +38,11 @@ public class PlanningHostWebSocketMessageParser {
         return new TextMessage(jsonMessage);
     }
 
+    public JsonObject parseMessageToJson(Object message) {
+        String messageString = new Gson().toJson(message);
+        return JsonParser.parseString(messageString).getAsJsonObject();
+    }
+
     private String parseMessageToString(WebSocketMessage<?> webSocketMessage) throws Error {
         ByteBuffer byteBuffer;
 
@@ -56,5 +63,9 @@ public class PlanningHostWebSocketMessageParser {
 
     public PlanningHostStartSessionMessage parseStartSessionMessage(JsonObject messageString) {
         return new Gson().fromJson(messageString, PlanningHostStartSessionMessage.class);
+    }
+
+    public PlanningAddTicketMessage parseAddTicketMessage(JsonObject messageString) {
+        return new Gson().fromJson(messageString, PlanningAddTicketMessage.class);
     }
 }
