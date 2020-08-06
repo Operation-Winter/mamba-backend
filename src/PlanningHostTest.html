@@ -19,6 +19,11 @@
         <b>Session name: </b><input id="sessionName" />
         <button id="startCommand">Start Session Command</button>
     </div>
+    <div class="add-ticket-command-fields">
+        <b>Identifier: </b><input id="ticketIdentifier" />
+        <b>Description: </b><input id="ticketDescription" />
+        <button id="addTicketCommand">Add Ticket</button>
+    </div>
 
     <div class="input-fields">
         <p>Send custom command JSON:</p>
@@ -62,7 +67,14 @@
         messageWindow.innerHTML += `<div>${message}</div>`
     }
 
-    // Commands
+    class Command {
+        constructor(type, message) {
+            this.type = type
+            this.message = message
+        }
+    }
+
+    // Start Session Command
     const startSessionCommandButton = document.getElementById("startCommand");
     const sessionNameInput = document.getElementById("sessionName");
 
@@ -71,13 +83,6 @@
         sendMessage(command);
         sessionNameInput.value = "";
     };
-
-    class Command {
-        constructor(type, message) {
-            this.type = type
-            this.message = message
-        }
-    }
 
     function startSessionCommand(sessionName) {
         let message = {
@@ -98,6 +103,26 @@
             ]
         }
         return new Command("START_SESSION", message)
+    }
+
+    // Add Ticket Command
+    const addTicketCommandButton = document.getElementById("addTicketCommand");
+    const ticketIdentifier = document.getElementById("ticketIdentifier");
+    const ticketDescription = document.getElementById("ticketDescription");
+
+    addTicketCommandButton.onclick = function (event) {
+        let command = JSON.stringify(addTicketCommand(ticketIdentifier.value, ticketDescription.value));
+        sendMessage(command);
+        ticketIdentifier.value = "";
+        ticketDescription.value = "";
+    };
+
+    function addTicketCommand(identifier, description) {
+        let message = {
+            identifier: identifier,
+            description: description
+        }
+        return new Command("ADD_TICKET", message)
     }
 </script>
 </html>
