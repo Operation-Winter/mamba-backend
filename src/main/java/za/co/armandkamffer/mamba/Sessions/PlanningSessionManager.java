@@ -3,14 +3,14 @@ package za.co.armandkamffer.mamba.Sessions;
 import java.util.HashMap;
 
 import org.springframework.web.socket.WebSocketMessage;
+import org.springframework.web.socket.WebSocketSession;
 
 import za.co.armandkamffer.mamba.Commands.PlanningHostWebSocketMessageParser;
 import za.co.armandkamffer.mamba.Commands.PlanningJoinWebSocketMessageParser;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningJoinSessionMessage;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandReceive;
-import za.co.armandkamffer.mamba.Controllers.PlanningHostWebSocketHandler;
-import za.co.armandkamffer.mamba.Controllers.PlanningJoinWebSocketHandler;
+import za.co.armandkamffer.mamba.Controllers.PlanningWebSocketHandler;
 import za.co.armandkamffer.mamba.Models.Planning.User;
 
 public final class PlanningSessionManager {
@@ -43,24 +43,24 @@ public final class PlanningSessionManager {
         return sessionID;
     }
 
-    public void parseHostMessageToCommand(PlanningHostWebSocketHandler webSocketHandler, String sessionID, WebSocketMessage<?> message) {
+    public void parseHostMessageToCommand(PlanningWebSocketHandler webSocketHandler, WebSocketSession session, WebSocketMessage<?> message) {
         PlanningHostCommandReceive command = hostCommandParser.parseMessageToCommand(message);
-        executeHostCommand(webSocketHandler, command, sessionID);
+        executeHostCommand(webSocketHandler, session, command);
     }
 
-    public void parseJoinMessageToCommand(PlanningJoinWebSocketHandler webSocketHandler, String sessionID, WebSocketMessage<?> message) {
+    public void parseJoinMessageToCommand(PlanningWebSocketHandler webSocketHandler, WebSocketSession session, WebSocketMessage<?> message) {
         PlanningJoinCommandReceive command = joinCommandParser.parseMessageToCommand(message);
-        executeJoinCommand(webSocketHandler, command, sessionID);
+        executeJoinCommand(webSocketHandler, session, command);
     }
 
-    private void executeHostCommand(PlanningHostWebSocketHandler webSocketHandler, PlanningHostCommandReceive command, String sessionID) {
+    private void executeHostCommand(PlanningWebSocketHandler webSocketHandler, WebSocketSession session, PlanningHostCommandReceive command) {
         switch (command.type) {
             case START_SESSION:
                 String newSessionID = createSessionID();
-                PlanningSession session = new PlanningSession(newSessionID, webSocketHandler);
-                webSocketHandler.sessionID = newSessionID;
-                sessions.put(newSessionID, session);
-                session.executeCommand(command);
+                PlanningSession planningSession = new PlanningSession(newSessionID, webSocketHandler);
+                webSocketHandler.addTag(session, "host-" + newSessionID);
+                sessions.put(newSessionID, planningSession);
+                planningSession.executeCommand(command);
                 break;
         
             default:
@@ -68,19 +68,19 @@ public final class PlanningSessionManager {
         }
     }
 
-    private void executeJoinCommand(PlanningJoinWebSocketHandler webSocketHandler, PlanningJoinCommandReceive command, String sessionID) {
+    private void executeJoinCommand(PlanningWebSocketHandler webSocketHandler, WebSocketSession session, PlanningJoinCommandReceive command) {
         switch (command.type) {
             case JOIN_SESSION:
                 PlanningJoinSessionMessage message = joinCommandParser.parseStartSessionMessage(command.message);
-                PlanningSession session = sessions.get(message.sessionCode);
+                PlanningSession planningSession = sessions.get(message.sessionCode);
 
                 if (session == null) {
                     // TODO: If invalid send back invalid_session command
                 }
 
-                User newUser = new User(message.participantName, webSocketHandler);
-                webSocketHandler.sessionID = session.sessionID;
-                session.addUser(newUser);
+                User newUser = new User(message.participantName);
+                webSocketHandler.addTag(session, "join-" + planningSession.sessionID);
+                planningSession.addUser(newUser);
                 break;
         
             default:
