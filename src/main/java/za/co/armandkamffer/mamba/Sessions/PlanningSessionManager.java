@@ -4,6 +4,8 @@ import java.util.HashMap;
 
 import com.google.gson.JsonObject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -19,6 +21,8 @@ import za.co.armandkamffer.mamba.Controllers.PlanningWebSocketHandler;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningUser;
 
 public final class PlanningSessionManager {
+    private Logger logger = LoggerFactory.getLogger(PlanningSessionManager.class);
+
     private static PlanningSessionManager INSTANCE;
     private HashMap<String, PlanningSession> sessions;
 
@@ -44,7 +48,6 @@ public final class PlanningSessionManager {
             Integer sessionCount = sessions.size();
             sessionID = String.format("%06d", sessionCount);
         } while (sessions.get(sessionID) != null);
-
         return sessionID;
     }
 
@@ -92,6 +95,7 @@ public final class PlanningSessionManager {
     }
 
     private void sendInvalidCommand(PlanningWebSocketHandler webSocketHandler, WebSocketSession session, String code, String description) {
+        logger.warn("Invalid command for {}: {}:{}", session.getId(), code, description);
         PlanningInvalidCommandMessage invalidCommandMessage = new PlanningInvalidCommandMessage(code, description);
         JsonObject message = joinCommandParser.parseMessageToJson(invalidCommandMessage);
         PlanningJoinCommandSend invalidCommand = new PlanningJoinCommandSend(PlanningJoinCommandSendType.INVALID_COMMAND, message);
@@ -104,6 +108,7 @@ public final class PlanningSessionManager {
         webSocketHandler.setSessionCodeTag(session, "host", newSessionID);
         sessions.put(newSessionID, planningSession);
         planningSession.executeCommand(command);
+        logger.info("Planning Session created: {}", newSessionID);
     }
 
     private void executeJoinSessionCommand(PlanningWebSocketHandler webSocketHandler, WebSocketSession session, PlanningJoinCommandReceive command) {
@@ -111,6 +116,7 @@ public final class PlanningSessionManager {
         PlanningSession planningSession = sessions.get(message.sessionCode);
 
         if (planningSession == null) {
+            logger.warn("Session code for {}: {}", session.getId(), message.sessionCode);
             PlanningJoinCommandSend invalidSessionCommand = new PlanningJoinCommandSend(PlanningJoinCommandSendType.INVALID_SESSION, null);
             webSocketHandler.sendMessage(session.getId(), joinCommandParser.parseCommandToBinaryMessage(invalidSessionCommand));
             return;
@@ -119,5 +125,6 @@ public final class PlanningSessionManager {
         PlanningUser newUser = new PlanningUser(message.participantName, session.getId());
         webSocketHandler.setSessionCodeTag(session, "join", planningSession.sessionID);
         planningSession.addUser(newUser);
+        logger.info("Participant added to Planning Session: {}", planningSession.sessionID);
     }
 }

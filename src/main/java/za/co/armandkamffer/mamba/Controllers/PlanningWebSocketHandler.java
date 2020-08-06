@@ -85,9 +85,4 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
         tags.add(session, tag);
         logger.info("Add tag: Session ID: {} received tag {}", session.getId(), tag);
     }
-    
-    private void removeTag(WebSocketSession session, String tag) {
-        tags.removeTagFrom(session, tag);
-        logger.info("Remove tag: Session ID: {} removed tag {}", session.getId(), tag);
-    }
 }

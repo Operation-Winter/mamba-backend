@@ -23,23 +23,25 @@ public class PlanningHostWebSocketMessageParser {
 
     public PlanningHostCommandReceive parseMessageToCommand(WebSocketMessage<?> webSocketMessage) throws Error {
         String webSocketMessageString = parseMessageToString(webSocketMessage);
+        logger.debug("PlanningJoin command: {}", webSocketMessageString);
         return parseStringToCommand(webSocketMessageString);
     }
 
     public BinaryMessage parseCommandToBinaryMessage(PlanningHostCommandSend command) {
         String jsonMessage = new Gson().toJson(command);
-        logger.info("PlanningHost command: {}", jsonMessage);
+        logger.debug("PlanningHost command to BinaryMessage: {}", jsonMessage);
         return new BinaryMessage(jsonMessage.getBytes());
     }
 
     public TextMessage parseCommandToTextMessage(PlanningHostCommandSend command) {
         String jsonMessage = new Gson().toJson(command);
-        logger.info("PlanningHost command: {}", jsonMessage);
+        logger.debug("PlanningHost command to TextMessage: {}", jsonMessage);
         return new TextMessage(jsonMessage);
     }
 
     public JsonObject parseMessageToJson(Object message) {
         String messageString = new Gson().toJson(message);
+        logger.debug("PlanningHost command message too JSON: {}", messageString);
         return JsonParser.parseString(messageString).getAsJsonObject();
     }
 
@@ -51,6 +53,7 @@ public class PlanningHostWebSocketMessageParser {
         } else if (webSocketMessage instanceof BinaryMessage) {
             byteBuffer = ((BinaryMessage) webSocketMessage).getPayload();
         } else {
+            logger.error("parseMessageToString: Invalid WebSocketMessage type");
             throw new Error("Invalid WebSocketMessage type");
         }
 
