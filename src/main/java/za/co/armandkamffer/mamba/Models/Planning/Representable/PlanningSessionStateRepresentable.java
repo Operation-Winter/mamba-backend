@@ -19,7 +19,10 @@ public class PlanningSessionStateRepresentable {
         this.availableCards = availableCards;
         this.participants = new ArrayList<PlanningUserRepresentable>();
         addPartiticpants(users);
-        this.ticket = new PlanningTicketRepresentable(ticket);
+
+        if(ticket != null) {
+            this.ticket = new PlanningTicketRepresentable(ticket);
+        }
     }
 
     private void addPartiticpants(ArrayList<PlanningUser> users) {
