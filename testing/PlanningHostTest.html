@@ -70,6 +70,10 @@
         fileReader.readAsArrayBuffer(event.data);
     };
  
+    socket.onclose = function (e) {
+        addMessageToWindow("Disconnected");
+    }
+
     sendButton.onclick = function (event) {
         sendMessage(messageInput.value);
         messageInput.value = "";
