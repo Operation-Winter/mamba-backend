@@ -17,10 +17,8 @@ import za.co.armandkamffer.mamba.Commands.Models.CommandKeys.PlanningHostCommand
 import za.co.armandkamffer.mamba.Commands.Models.CommandKeys.PlanningJoinCommandSendType;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningAddTicketMessage;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningHostStartSessionMessage;
-import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningVoteMessage;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandSend;
-import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandSend;
 import za.co.armandkamffer.mamba.Controllers.PlanningWebSocketHandler;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningCard;
@@ -40,7 +38,6 @@ public class PlanningSession {
     private PlanningSessionState state;
     private PlanningWebSocketHandler webSocketHandler;
     private PlanningTicket ticket;
-    private ArrayList<PlanningTicketVote> ticketVotes;
     public String sessionID;
 
     public PlanningSession(String sessionID, PlanningWebSocketHandler webSocketHandler) {
@@ -59,12 +56,13 @@ public class PlanningSession {
         logger.info("Participant {} added to {}", user.name, sessionID);
     }
 
+    public Optional<PlanningUser> getUser(String participantId) {
+        Optional<PlanningUser> user = users.stream().filter(x -> x.identifier.toString().equals(participantId)).findFirst();
+        return user;
+    }
+
     private PlanningSessionStateRepresentable createSessionStateRepresentable() {
-        return new PlanningSessionStateRepresentable(sessionName, 
-                                                     sessionID,
-                                                     availableCards,
-                                                     users,
-                                                     ticket);
+        return new PlanningSessionStateRepresentable(sessionName, sessionID, availableCards, users, ticket);
     }
 
     private void sendCurrentStateToAll() {
@@ -111,38 +109,18 @@ public class PlanningSession {
         }
     }
 
-    public void executeCommand(PlanningJoinCommandReceive command, String participantId) {
-        logger.info("{} join command received on {}", command.type, sessionID);
-        switch (command.type) {
-            case VOTE:
-            executeVoteCommand(command, participantId);
-                break;
-
-            default:
-                logger.warn("Command received with no implementation: {}", command.type);
-                break;
-        }
-    }
-
-    private void executeVoteCommand(PlanningJoinCommandReceive command, String participantId) {
-        PlanningVoteMessage message = joinCommandParser.parseVoteMessage(command.message);
-        Optional<PlanningUser> user = users.stream().filter(x -> x.identifier.toString().equals(participantId)).findFirst();
-        
-        if(!user.isPresent() && ticket.identifier.equals(message.ticketId) && state == PlanningSessionState.VOTING) {
+    public void addVote(String ticketId, PlanningUser user, PlanningCard card) {
+        if(!ticket.identifier.equals(ticketId) && state != PlanningSessionState.VOTING) {
             return;
         }
-        addVote(ticket, user.get(), message.selectedCard);
-    }
 
-    private void addVote(PlanningTicket ticket, PlanningUser user, PlanningCard card) {
-        Optional<PlanningTicketVote> existingVote = ticketVotes.stream().filter(x -> x.user == user && x.ticket == ticket).findFirst();
-
+        Optional<PlanningTicketVote> existingVote = ticket.ticketVotes.stream().filter(x -> x.user == user).findFirst();
         if(existingVote.isPresent()) {
-            ticketVotes.remove(existingVote.get());
+            ticket.ticketVotes.remove(existingVote.get());
         }
 
-        PlanningTicketVote ticketVote = new PlanningTicketVote(ticket, user, card);
-        ticketVotes.add(ticketVote);
+        PlanningTicketVote ticketVote = new PlanningTicketVote(user, card);
+        ticket.ticketVotes.add(ticketVote);
         sendCurrentStateToAll();
     }
 
