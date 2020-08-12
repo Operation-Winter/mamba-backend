@@ -14,6 +14,7 @@ import za.co.armandkamffer.mamba.Commands.PlanningJoinWebSocketMessageParser;
 import za.co.armandkamffer.mamba.Commands.Models.CommandKeys.PlanningJoinCommandSendType;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningInvalidCommandMessage;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningJoinSessionMessage;
+import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningVoteMessage;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandSend;
@@ -90,6 +91,23 @@ public final class PlanningSessionManager {
                 break;
         
             default:
+                if (sessionCode == null) {
+                    sendInvalidCommand(webSocketHandler, session, "0000", "No session code has been specified");
+                    return;
+                }
+                
+                PlanningSession planningSession = sessions.get(sessionCode);
+                if (planningSession == null) {
+                    sendInvalidCommand(webSocketHandler, session, "1000", "Session is not available anymore");
+                    return;
+                }
+                String participantId = (String) session.getAttributes().get("participantId");
+                if (participantId == null) {
+                    sendInvalidCommand(webSocketHandler, session, "", "No participant ID is available");
+                    return;
+                }
+
+                planningSession.executeCommand(command, participantId);
                 break;
         }
     }
