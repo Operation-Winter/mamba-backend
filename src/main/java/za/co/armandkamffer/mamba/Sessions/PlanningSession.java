@@ -130,6 +130,11 @@ public class PlanningSession {
 
         PlanningTicketVote ticketVote = new PlanningTicketVote(user, card);
         ticket.ticketVotes.add(ticketVote);
+
+        if(ticket.ticketVotes.size() == users.size()) {
+            state = PlanningSessionState.VOTING_FINISHED;
+        }
+
         sendCurrentStateToAll();
     }
 
