@@ -23,10 +23,10 @@ import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandSen
 import za.co.armandkamffer.mamba.Controllers.PlanningWebSocketHandler;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningCard;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningSessionState;
-import za.co.armandkamffer.mamba.Models.Planning.PlanningSessionStateRepresentable;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningTicket;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningTicketVote;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningUser;
+import za.co.armandkamffer.mamba.Models.Planning.Representable.PlanningSessionStateRepresentable;
 
 public class PlanningSession {
     private Logger logger = LoggerFactory.getLogger(PlanningSession.class);
