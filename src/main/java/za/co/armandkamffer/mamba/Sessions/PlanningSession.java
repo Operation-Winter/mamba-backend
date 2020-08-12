@@ -143,6 +143,9 @@ public class PlanningSession {
     }
 
     private void executeRevoteCommand() {
+        if(state != PlanningSessionState.VOTING_FINISHED || ticket == null) {
+            return;
+        }
         ticket.resetTicketVotes();
         state = PlanningSessionState.VOTING;
         sendCurrentStateToAll();
