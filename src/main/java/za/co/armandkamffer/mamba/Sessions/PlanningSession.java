@@ -103,6 +103,10 @@ public class PlanningSession {
                 executeAddTicketCommand(command);
                 break;
 
+            case REVOTE:
+                executeRevoteCommand();
+                break;
+                
             default:
                 logger.warn("Command received with no implementation: {}", command.type);
                 break;
@@ -134,6 +138,12 @@ public class PlanningSession {
     private void executeAddTicketCommand(PlanningHostCommandReceive command) {
         PlanningAddTicketMessage addTicketMessage = hostCommandParser.parseAddTicketMessage(command.message);
         ticket = new PlanningTicket(addTicketMessage.identifier, addTicketMessage.description);
+        state = PlanningSessionState.VOTING;
+        sendCurrentStateToAll();
+    }
+
+    private void executeRevoteCommand() {
+        ticket.resetTicketVotes();
         state = PlanningSessionState.VOTING;
         sendCurrentStateToAll();
     }
