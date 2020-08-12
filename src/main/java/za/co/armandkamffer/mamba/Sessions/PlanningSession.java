@@ -61,6 +61,11 @@ public class PlanningSession {
         return user;
     }
 
+    public void removeUser(PlanningUser user) {
+        users.remove(user);
+        sendCurrentStateToAll();;
+    }
+
     private PlanningSessionStateRepresentable createSessionStateRepresentable() {
         return new PlanningSessionStateRepresentable(sessionName, sessionID, availableCards, users, ticket);
     }

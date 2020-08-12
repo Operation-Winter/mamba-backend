@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -99,6 +100,10 @@ public final class PlanningSessionManager {
                 executeVoteCommand(webSocketHandler, session, sessionCode, command);
                 break;
 
+            case LEAVE_SESSION:
+                executeJoinLeaveSessionCommand(webSocketHandler, session, sessionCode);
+                break;
+
             default:
                 break;
         }
@@ -126,6 +131,32 @@ public final class PlanningSessionManager {
         webSocketHandler.closeConnections(sessionCode, "host");
         sessions.remove(sessionCode);
         logger.info("Planning Session ended: {}", sessionCode);
+    }
+
+    private void executeJoinLeaveSessionCommand(PlanningWebSocketHandler webSocketHandler, WebSocketSession session, String sessionCode) {
+        if (sessionCode == null) {
+            sendInvalidCommand(webSocketHandler, session, "0000", "No session code has been specified");
+            return;
+        }
+        
+        PlanningSession planningSession = sessions.get(sessionCode);
+        if (planningSession == null) {
+            sendInvalidCommand(webSocketHandler, session, "1000", "Session is not available anymore");
+            return;
+        }
+        String participantId = (String) session.getAttributes().get("participantId");
+        if (participantId == null) {
+            logger.warn("Participant ID is not available for {}: {}", session.getId(), sessionCode);
+            sendInvalidCommand(webSocketHandler, session, "", "No participant ID is available");
+            return;
+        }
+
+        Optional<PlanningUser> user = planningSession.getUser(participantId);
+        if(user.isPresent()) {
+            webSocketHandler.closeConnections(user.get().webSocketSessionId);
+            planningSession.removeUser(user.get());
+            logger.info("User left planning Session ended: {}:{}", participantId, sessionCode);
+        }
     }
 
     private void executeJoinSessionCommand(PlanningWebSocketHandler webSocketHandler, WebSocketSession session, PlanningJoinCommandReceive command) {
