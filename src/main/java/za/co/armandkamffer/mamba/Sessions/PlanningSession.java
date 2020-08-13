@@ -61,6 +61,11 @@ public class PlanningSession {
         return user;
     }
 
+    public void removeUser(PlanningUser user) {
+        users.remove(user);
+        sendCurrentStateToAll();;
+    }
+
     private PlanningSessionStateRepresentable createSessionStateRepresentable() {
         return new PlanningSessionStateRepresentable(sessionName, sessionID, availableCards, users, ticket);
     }
@@ -125,6 +130,11 @@ public class PlanningSession {
 
         PlanningTicketVote ticketVote = new PlanningTicketVote(user, card);
         ticket.ticketVotes.add(ticketVote);
+
+        if(ticket.ticketVotes.size() == users.size()) {
+            state = PlanningSessionState.VOTING_FINISHED;
+        }
+
         sendCurrentStateToAll();
     }
 

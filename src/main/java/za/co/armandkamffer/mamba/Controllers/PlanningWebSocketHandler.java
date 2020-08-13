@@ -76,6 +76,10 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
 
     public void closeConnections(String toTag, String toType) {
         String tag = toType + "-" + toTag;
+       closeConnections(tag);
+    }
+
+    public void closeConnections(String tag) {
         Set<WebSocketSession> sessions = tags.getObjectsWith(tag);
 
         for (WebSocketSession webSocketSession : sessions) {

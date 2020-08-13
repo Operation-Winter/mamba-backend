@@ -38,6 +38,11 @@
                 <b>Selected card: </b><input id="selectedCard" />
             </td>
         </tr>
+        <tr>
+            <td>
+                <button id="leaveSessionCommand">Leave Session Command</button>
+            </td>
+        </tr>
     </table>
 
     <div class="input-fields">
@@ -134,5 +139,13 @@
         }
         return new Command("VOTE", message)
     }
+
+    // Leave session command
+    const leaveSessionCommandButton = document.getElementById("leaveSessionCommand");
+
+    leaveSessionCommandButton.onclick = function (event) {
+        let command = JSON.stringify( { type: "LEAVE_SESSION"});
+        sendMessage(command);
+    };
 </script>
 </html>
