@@ -1,6 +1,7 @@
 package za.co.armandkamffer.mamba.Sessions;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 import com.google.gson.JsonObject;
 
@@ -14,6 +15,7 @@ import za.co.armandkamffer.mamba.Commands.PlanningJoinWebSocketMessageParser;
 import za.co.armandkamffer.mamba.Commands.Models.CommandKeys.PlanningJoinCommandSendType;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningInvalidCommandMessage;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningJoinSessionMessage;
+import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningVoteMessage;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandSend;
@@ -89,6 +91,10 @@ public final class PlanningSessionManager {
                 executeJoinSessionCommand(webSocketHandler, session, command);
                 break;
         
+            case VOTE:
+                executeVoteCommand(webSocketHandler, session, sessionCode, command);
+                break;
+
             default:
                 break;
         }
@@ -116,7 +122,7 @@ public final class PlanningSessionManager {
         PlanningSession planningSession = sessions.get(message.sessionCode);
 
         if (planningSession == null) {
-            logger.warn("Session code for {}: {}", session.getId(), message.sessionCode);
+            logger.warn("Invalid session code for {}: {}", session.getId(), message.sessionCode);
             PlanningJoinCommandSend invalidSessionCommand = new PlanningJoinCommandSend(PlanningJoinCommandSendType.INVALID_SESSION, null);
             webSocketHandler.sendMessage(session.getId(), joinCommandParser.parseCommandToBinaryMessage(invalidSessionCommand));
             return;
@@ -124,7 +130,39 @@ public final class PlanningSessionManager {
 
         PlanningUser newUser = new PlanningUser(message.participantName, session.getId());
         webSocketHandler.setSessionCodeTag(session, "join", planningSession.sessionID);
+        session.getAttributes().put("participantId", newUser.identifier.toString());
         planningSession.addUser(newUser);
         logger.info("Participant added to Planning Session: {}", planningSession.sessionID);
+    }
+
+    private void executeVoteCommand(PlanningWebSocketHandler webSocketHandler, WebSocketSession session, String sessionCode, PlanningJoinCommandReceive command) {
+        if (sessionCode == null) {
+            logger.warn("No session code specified for {}", session.getId());
+            sendInvalidCommand(webSocketHandler, session, "0000", "No session code has been specified");
+            return;
+        }
+        PlanningSession planningSession = sessions.get(sessionCode);
+        if (planningSession == null) {
+            logger.warn("Session is not available for {}: {}", session.getId(), sessionCode);
+            sendInvalidCommand(webSocketHandler, session, "1000", "Session is not available anymore");
+            return;
+        }
+        String participantId = (String) session.getAttributes().get("participantId");
+        if (participantId == null) {
+            logger.warn("Participant ID is not available for {}: {}", session.getId(), sessionCode);
+            sendInvalidCommand(webSocketHandler, session, "", "No participant ID is available");
+            return;
+        }
+
+        PlanningVoteMessage message = joinCommandParser.parseVoteMessage(command.message);
+
+        Optional<PlanningUser> user = planningSession.getUser(participantId);
+        if(!user.isPresent()) {
+            logger.warn("Session code for {}: {}", session.getId(), sessionCode);
+            sendInvalidCommand(webSocketHandler, session, "", "Participant is not part of session");
+            return;
+        }
+
+        planningSession.addVote(message.ticketId, user.get(), message.selectedCard);
     }
 }

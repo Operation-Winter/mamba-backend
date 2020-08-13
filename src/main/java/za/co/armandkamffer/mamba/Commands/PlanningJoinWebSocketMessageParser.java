@@ -14,6 +14,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningJoinSessionMessage;
+import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningVoteMessage;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandSend;
 
@@ -65,5 +66,9 @@ public class PlanningJoinWebSocketMessageParser {
 
     public PlanningJoinSessionMessage parseJoinSessionMessage(JsonObject messageString) {
         return new Gson().fromJson(messageString, PlanningJoinSessionMessage.class);
+    }
+
+    public PlanningVoteMessage parseVoteMessage(JsonObject messageString) {
+        return new Gson().fromJson(messageString, PlanningVoteMessage.class);
     }
 }

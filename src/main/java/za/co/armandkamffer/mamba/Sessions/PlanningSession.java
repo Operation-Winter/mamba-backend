@@ -1,6 +1,7 @@
 package za.co.armandkamffer.mamba.Sessions;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -22,9 +23,10 @@ import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandSen
 import za.co.armandkamffer.mamba.Controllers.PlanningWebSocketHandler;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningCard;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningSessionState;
-import za.co.armandkamffer.mamba.Models.Planning.PlanningSessionStateRepresentable;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningTicket;
+import za.co.armandkamffer.mamba.Models.Planning.PlanningTicketVote;
 import za.co.armandkamffer.mamba.Models.Planning.PlanningUser;
+import za.co.armandkamffer.mamba.Models.Planning.Representable.PlanningSessionStateRepresentable;
 
 public class PlanningSession {
     private Logger logger = LoggerFactory.getLogger(PlanningSession.class);
@@ -54,12 +56,13 @@ public class PlanningSession {
         logger.info("Participant {} added to {}", user.name, sessionID);
     }
 
+    public Optional<PlanningUser> getUser(String participantId) {
+        Optional<PlanningUser> user = users.stream().filter(x -> x.identifier.toString().equals(participantId)).findFirst();
+        return user;
+    }
+
     private PlanningSessionStateRepresentable createSessionStateRepresentable() {
-        return new PlanningSessionStateRepresentable(sessionName, 
-                                                     sessionID,
-                                                     availableCards,
-                                                     users,
-                                                     ticket);
+        return new PlanningSessionStateRepresentable(sessionName, sessionID, availableCards, users, ticket);
     }
 
     private void sendCurrentStateToAll() {
@@ -90,7 +93,7 @@ public class PlanningSession {
     }
 
     public void executeCommand(PlanningHostCommandReceive command) {
-        logger.info("{} command received on {}", command.type, sessionID);
+        logger.info("{} host command received on {}", command.type, sessionID);
         switch (command.type) {
             case START_SESSION:
                 executeStartSessionCommand(command);
@@ -104,6 +107,21 @@ public class PlanningSession {
                 logger.warn("Command received with no implementation: {}", command.type);
                 break;
         }
+    }
+
+    public void addVote(String ticketId, PlanningUser user, PlanningCard card) {
+        if(!ticket.identifier.equals(ticketId) && state != PlanningSessionState.VOTING) {
+            return;
+        }
+
+        Optional<PlanningTicketVote> existingVote = ticket.ticketVotes.stream().filter(x -> x.user == user).findFirst();
+        if(existingVote.isPresent()) {
+            ticket.ticketVotes.remove(existingVote.get());
+        }
+
+        PlanningTicketVote ticketVote = new PlanningTicketVote(user, card);
+        ticket.ticketVotes.add(ticketVote);
+        sendCurrentStateToAll();
     }
 
     private void executeStartSessionCommand(PlanningHostCommandReceive command) {

@@ -15,11 +15,30 @@
     <h1>Mamba Planning Join</h1>
     <div id="messages" class="messages"></div>
 
-    <div class="join-command-fields">
-        <b>Participant name: </b><input id="participantName" />
-        <b>Session code: </b><input id="sessionCode" />
-        <button id="joinCommand">Join Session Command</button>
-    </div>
+    <table>
+        <tr>
+            <td>
+                <button id="joinCommand">Join Session Command</button>
+            </td>
+            <td>
+                <b>Participant name: </b><input id="participantName" />
+            </td>
+            <td>
+                <b>Session code: </b><input id="sessionCode" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <button id="voteCommand">Vote Command</button>
+            </td>
+            <td>
+                <b>Ticket ID: </b><input id="ticketId" />
+            </td>
+            <td>
+                <b>Selected card: </b><input id="selectedCard" />
+            </td>
+        </tr>
+    </table>
 
     <div class="input-fields">
         <p>Send custom command JSON:</p>
@@ -65,6 +84,14 @@
     }
 
     // Commands
+    class Command {
+        constructor(type, message) {
+            this.type = type
+            this.message = message
+        }
+    }
+
+    // Join session command
     const joinSessionCommandButton = document.getElementById("joinCommand");
     const sessionCodeInput = document.getElementById("sessionCode");
     const participantNameInput = document.getElementById("participantName");
@@ -76,19 +103,32 @@
         participantNameInput.value = "";
     };
 
-    class Command {
-        constructor(type, message) {
-            this.type = type
-            this.message = message
-        }
-    }
-
     function joinSessionCommand(participantName, sessionCode) {
         let message = {
             participantName: participantName,
             sessionCode: sessionCode
         }
         return new Command("JOIN_SESSION", message)
+    }
+
+    // Vote command
+    const voteCommandButton = document.getElementById("voteCommand");
+    const ticketIdInput = document.getElementById("ticketId");
+    const selectedCardInput = document.getElementById("selectedCard");
+
+    voteCommandButton.onclick = function (event) {
+        let command = JSON.stringify(voteCommand(ticketIdInput.value, selectedCardInput.value));
+        sendMessage(command);
+        ticketIdInput.value = "";
+        selectedCardInput.value = "";
+    };
+
+    function voteCommand(ticketId, selectedCard) {
+        let message = {
+            ticketId: ticketId,
+            selectedCard: selectedCard
+        }
+        return new Command("VOTE", message)
     }
 </script>
 </html>
