@@ -12,4 +12,8 @@ public class PlanningTicket {
         this.description = description;
         this.ticketVotes = new ArrayList<PlanningTicketVote>();
     }
+
+    public void resetTicketVotes() {
+        ticketVotes.clear();
+    }
 }

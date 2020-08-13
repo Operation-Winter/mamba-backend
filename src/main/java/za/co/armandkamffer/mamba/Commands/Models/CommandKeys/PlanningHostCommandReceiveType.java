@@ -7,5 +7,6 @@ public enum PlanningHostCommandReceiveType {
     END_SESSION,
     REMOVE_PARTICIPANT,
     FINISH_VOTING,
-    RECONNECT
+    RECONNECT,
+    REVOTE
 }

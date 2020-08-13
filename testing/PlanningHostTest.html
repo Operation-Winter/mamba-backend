@@ -15,15 +15,32 @@
     <h1>Mamba Planning Host</h1>
     <div id="messages" class="messages"></div>
 
-    <div class="start-command-fields">
-        <b>Session name: </b><input id="sessionName" />
-        <button id="startCommand">Start Session Command</button>
-    </div>
-    <div class="add-ticket-command-fields">
-        <b>Identifier: </b><input id="ticketIdentifier" />
-        <b>Description: </b><input id="ticketDescription" />
-        <button id="addTicketCommand">Add Ticket</button>
-    </div>
+    <table>
+        <tr>
+            <td>
+                <button id="startCommand">Start Session Command</button>
+            </td>
+            <td>
+                <b>Session name: </b><input id="sessionName" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <button id="addTicketCommand">Add Ticket</button>
+            </td>
+            <td>
+                <b>Identifier: </b><input id="ticketIdentifier" />
+            </td>
+            <td>
+                <b>Description: </b><input id="ticketDescription" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <button id="revoteCommand">Revote Ticket</button>
+            </td>
+        </tr>
+    </table>
 
     <div class="input-fields">
         <p>Send custom command JSON:</p>
@@ -124,5 +141,13 @@
         }
         return new Command("ADD_TICKET", message)
     }
+
+    // Revote command
+    const revoteCommandButton = document.getElementById("revoteCommand");
+    revoteCommandButton.onclick = function (event) {
+        let command = JSON.stringify({ type: "REVOTE" });
+        sendMessage(command);
+    };
+
 </script>
 </html>
