@@ -33,7 +33,12 @@ public class PlanningSessionTags<Obj, Tag> {
     public void removeObject(Obj object) {
         Set<Tag> tagsForObject = getTagsForObject(object);
         taggedObjects.remove(object);
-        tagsForObject.forEach(tag -> tags.get(tag).remove(object));
+        tagsForObject.forEach(tag -> {
+            tags.get(tag).remove(object);
+            if(tags.get(tag).size() == 0) {
+                removeTag(tag);
+            }
+        });
     }
     
     public void removeTag(Tag tag) {

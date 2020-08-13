@@ -69,6 +69,10 @@ public final class PlanningSessionManager {
                 executeHostSessionCommand(webSocketHandler, session, command);
                 break;
         
+            case END_SESSION:
+                executeHostEndSessionCommand(webSocketHandler, sessionCode);
+                break;
+
             default:
                 if (sessionCode == null) {
                     sendInvalidCommand(webSocketHandler, session, "0000", "No session code has been specified");
@@ -115,6 +119,13 @@ public final class PlanningSessionManager {
         sessions.put(newSessionID, planningSession);
         planningSession.executeCommand(command);
         logger.info("Planning Session created: {}", newSessionID);
+    }
+
+    private void executeHostEndSessionCommand(PlanningWebSocketHandler webSocketHandler, String sessionCode) {
+        webSocketHandler.closeConnections(sessionCode, "join");
+        webSocketHandler.closeConnections(sessionCode, "host");
+        sessions.remove(sessionCode);
+        logger.info("Planning Session ended: {}", sessionCode);
     }
 
     private void executeJoinSessionCommand(PlanningWebSocketHandler webSocketHandler, WebSocketSession session, PlanningJoinCommandReceive command) {

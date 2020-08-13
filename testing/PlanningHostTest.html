@@ -40,6 +40,11 @@
                 <button id="revoteCommand">Revote Ticket</button>
             </td>
         </tr>
+        <tr>
+            <td>
+                <button id="endSessionCommand">End Session</button>
+            </td>
+        </tr>
     </table>
 
     <div class="input-fields">
@@ -70,6 +75,10 @@
         fileReader.readAsArrayBuffer(event.data);
     };
  
+    socket.onclose = function (e) {
+        addMessageToWindow("Disconnected");
+    }
+
     sendButton.onclick = function (event) {
         sendMessage(messageInput.value);
         messageInput.value = "";
@@ -146,6 +155,13 @@
     const revoteCommandButton = document.getElementById("revoteCommand");
     revoteCommandButton.onclick = function (event) {
         let command = JSON.stringify({ type: "REVOTE" });
+        sendMessage(command);
+    };
+
+    // End session command
+    const rendSessionCommandButton = document.getElementById("endSessionCommand");
+    rendSessionCommandButton.onclick = function (event) {
+        let command = JSON.stringify({ type: "END_SESSION" });
         sendMessage(command);
     };
 

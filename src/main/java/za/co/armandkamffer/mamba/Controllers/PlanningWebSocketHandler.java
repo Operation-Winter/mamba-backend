@@ -4,6 +4,9 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.CloseStatus;
@@ -22,9 +25,9 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
         String sessionCode = (String) session.getAttributes().get("sessionCode");
         logger.info("Command received from {}:{}:{}", session.getId(), type, sessionCode);
 
-        if(type.equals("host")) {
+        if (type.equals("host")) {
             planningSessionManager.parseHostMessageToCommand(this, session, sessionCode, message);
-        } else if(type.equals("join")) {
+        } else if (type.equals("join")) {
             planningSessionManager.parseJoinMessageToCommand(this, session, sessionCode, message);
         }
     }
@@ -69,6 +72,20 @@ public class PlanningWebSocketHandler implements WebSocketHandler {
                 logger.warn("Error sending message to session ID: " + sessionTo.getId(), ex);
             }
         });
+    }
+
+    public void closeConnections(String toTag, String toType) {
+        String tag = toType + "-" + toTag;
+        Set<WebSocketSession> sessions = tags.getObjectsWith(tag);
+
+        for (WebSocketSession webSocketSession : sessions) {
+            try {
+                webSocketSession.close(CloseStatus.NORMAL);
+            } catch (IOException e) {
+                logger.error("WebSocketSession close error: ", e);
+                e.printStackTrace();
+            }
+        }
     }
 
     public void sendMessage(String toTag, String toType, WebSocketMessage<?> message) {

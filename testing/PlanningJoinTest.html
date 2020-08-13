@@ -43,7 +43,7 @@
     <div class="input-fields">
         <p>Send custom command JSON:</p>
         <textarea name="message" id="message" cols="100" rows="20"></textarea>
-        <button id="send">Send</button>
+        <button id="send">Send</button>≠
     </div>
 </div>
 </body>
@@ -58,6 +58,10 @@
     socket.onopen = function (event) {
         addMessageToWindow("Connected");
     };
+
+    socket.onclose = function (e) {
+        addMessageToWindow("Disconnected");
+    }
  
     socket.onmessage = function (event) {
         let fileReader = new FileReader()
