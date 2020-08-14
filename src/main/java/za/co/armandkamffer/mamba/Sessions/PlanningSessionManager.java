@@ -127,6 +127,9 @@ public final class PlanningSessionManager {
     }
 
     private void executeHostEndSessionCommand(PlanningWebSocketHandler webSocketHandler, String sessionCode) {
+        PlanningJoinCommandSend endSessionCommand = new PlanningJoinCommandSend(PlanningJoinCommandSendType.END_SESSION, null);
+        webSocketHandler.sendMessage(sessionCode, "join", joinCommandParser.parseCommandToBinaryMessage(endSessionCommand));
+
         webSocketHandler.closeConnections(sessionCode, "join");
         webSocketHandler.closeConnections(sessionCode, "host");
         sessions.remove(sessionCode);
