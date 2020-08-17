@@ -45,6 +45,11 @@
                 <button id="endSessionCommand">End Session</button>
             </td>
         </tr>
+        <tr>
+            <td>
+                <button id="finishVotingCommand">Force finish voting</button>
+            </td>
+        </tr>
     </table>
 
     <div class="input-fields">
@@ -159,9 +164,16 @@
     };
 
     // End session command
-    const rendSessionCommandButton = document.getElementById("endSessionCommand");
-    rendSessionCommandButton.onclick = function (event) {
+    const endSessionCommandButton = document.getElementById("endSessionCommand");
+    endSessionCommandButton.onclick = function (event) {
         let command = JSON.stringify({ type: "END_SESSION" });
+        sendMessage(command);
+    };
+
+    // Finish voting command
+    const finishVotingCommandButton = document.getElementById("finishVotingCommand");
+    finishVotingCommandButton.onclick = function (event) {
+        let command = JSON.stringify({ type: "FINISH_VOTING" });
         sendMessage(command);
     };
 
