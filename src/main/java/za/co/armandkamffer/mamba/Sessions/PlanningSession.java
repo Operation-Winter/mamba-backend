@@ -112,6 +112,10 @@ public class PlanningSession {
                 executeRevoteCommand();
                 break;
                 
+            case FINISH_VOTING:
+                executeFinishVotingCommand();
+                break;
+
             default:
                 logger.warn("Command received with no implementation: {}", command.type);
                 break;
@@ -158,6 +162,11 @@ public class PlanningSession {
         }
         ticket.resetTicketVotes();
         state = PlanningSessionState.VOTING;
+        sendCurrentStateToAll();
+    }
+
+    private void executeFinishVotingCommand() {
+        state = PlanningSessionState.VOTING_FINISHED;
         sendCurrentStateToAll();
     }
     
