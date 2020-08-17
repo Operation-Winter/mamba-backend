@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>za.co.armandkamffer</groupId>
 	<artifactId>mamba</artifactId>
-	<version>0.2.1</version>
+	<version>0.2.2</version>
 	<name>mamba</name>
 	<description>Mamba</description>
 
