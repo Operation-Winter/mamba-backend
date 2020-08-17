@@ -50,6 +50,14 @@
                 <button id="finishVotingCommand">Force finish voting</button>
             </td>
         </tr>
+        <tr>
+            <td>
+                <button id="removeParticipantCommand">Remove participant</button>
+            </td>
+            <td>
+                <b>Participant ID: </b><input id="participantIdentifier" />
+            </td>
+        </tr>
     </table>
 
     <div class="input-fields">
@@ -176,6 +184,23 @@
         let command = JSON.stringify({ type: "FINISH_VOTING" });
         sendMessage(command);
     };
+
+    // Remove participant command
+    const removeParticipantCommandButton = document.getElementById("removeParticipantCommand");
+    const participantIdentifier = document.getElementById("participantIdentifier");
+
+    removeParticipantCommandButton.onclick = function (event) {
+        let command = JSON.stringify(removeParticipantCommand(participantIdentifier.value));
+        sendMessage(command);
+        participantIdentifier.value = "";
+    };
+
+    function removeParticipantCommand(identifier) {
+        let message = {
+            participantId: identifier
+        }
+        return new Command("REMOVE_PARTICIPANT", message)
+    }
 
 </script>
 </html>
