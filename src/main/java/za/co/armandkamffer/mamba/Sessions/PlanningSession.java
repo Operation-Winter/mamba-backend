@@ -17,6 +17,7 @@ import za.co.armandkamffer.mamba.Commands.Models.CommandKeys.PlanningHostCommand
 import za.co.armandkamffer.mamba.Commands.Models.CommandKeys.PlanningJoinCommandSendType;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningAddTicketMessage;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningHostStartSessionMessage;
+import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningRemoveParticipantMessage;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandSend;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandSend;
@@ -116,6 +117,10 @@ public class PlanningSession {
                 executeFinishVotingCommand();
                 break;
 
+            case REMOVE_PARTICIPANT:
+                executeRemoveParticipantCommand(command);
+                break;
+
             default:
                 logger.warn("Command received with no implementation: {}", command.type);
                 break;
@@ -168,6 +173,20 @@ public class PlanningSession {
     private void executeFinishVotingCommand() {
         state = PlanningSessionState.VOTING_FINISHED;
         sendCurrentStateToAll();
+    }
+
+    private void executeRemoveParticipantCommand(PlanningHostCommandReceive command) {
+        PlanningRemoveParticipantMessage removeParticipantMessage = hostCommandParser.parseRemoveParticipantMessage(command.message);
+        Optional<PlanningUser> user = getUser(removeParticipantMessage.participantId);
+        
+        if(!user.isPresent()) {
+            return;
+        }
+        PlanningJoinCommandSend removeCommand = new PlanningJoinCommandSend(PlanningJoinCommandSendType.REMOVE_PARTICIPANT, null);
+        BinaryMessage message = joinCommandParser.parseCommandToBinaryMessage(removeCommand);
+        webSocketHandler.sendMessage(user.get().webSocketSessionId, message);
+        webSocketHandler.closeConnections(user.get().webSocketSessionId);
+        removeUser(user.get());
     }
     
     private void sendCommandToHost(PlanningHostCommandSend command) {
