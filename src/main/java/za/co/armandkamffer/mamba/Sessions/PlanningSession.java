@@ -129,7 +129,7 @@ public class PlanningSession {
     }
 
     public void addVote(String ticketId, PlanningUser user, PlanningCard card) {
-        if(!ticket.identifier.equals(ticketId) && state != PlanningSessionState.VOTING) {
+        if(ticket != null && !ticket.identifier.equals(ticketId) && state != PlanningSessionState.VOTING) {
             return;
         }
 
@@ -198,7 +198,6 @@ public class PlanningSession {
             return;
         }
         addVote(ticket.identifier, user.get(), null);
-        sendCurrentStateToAll();
     }
     
     private void sendCommandToHost(PlanningHostCommandSend command) {
