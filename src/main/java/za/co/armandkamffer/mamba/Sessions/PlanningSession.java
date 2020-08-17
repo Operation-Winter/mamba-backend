@@ -18,6 +18,7 @@ import za.co.armandkamffer.mamba.Commands.Models.CommandKeys.PlanningJoinCommand
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningAddTicketMessage;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningHostStartSessionMessage;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningRemoveParticipantMessage;
+import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningSkipVoteMessage;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandSend;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningJoinCommandSend;
@@ -121,8 +122,8 @@ public class PlanningSession {
                 executeRemoveParticipantCommand(command);
                 break;
 
-            default:
-                logger.warn("Command received with no implementation: {}", command.type);
+            case SKIP_VOTE:
+                executeSkipVoteCommand(command);
                 break;
         }
     }
@@ -187,6 +188,17 @@ public class PlanningSession {
         webSocketHandler.sendMessage(user.get().webSocketSessionId, message);
         webSocketHandler.closeConnections(user.get().webSocketSessionId);
         removeUser(user.get());
+    }
+
+    private void executeSkipVoteCommand(PlanningHostCommandReceive command) {
+        PlanningSkipVoteMessage skipVoteMessage = hostCommandParser.parseSkipVoteMessage(command.message);
+        Optional<PlanningUser> user = getUser(skipVoteMessage.participantId);
+        
+        if(!user.isPresent()) {
+            return;
+        }
+        addVote(ticket.identifier, user.get(), null);
+        sendCurrentStateToAll();
     }
     
     private void sendCommandToHost(PlanningHostCommandSend command) {

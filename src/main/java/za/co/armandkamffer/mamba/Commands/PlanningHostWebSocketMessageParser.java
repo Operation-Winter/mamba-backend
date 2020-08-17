@@ -16,6 +16,7 @@ import org.springframework.web.socket.WebSocketMessage;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningAddTicketMessage;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningHostStartSessionMessage;
 import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningRemoveParticipantMessage;
+import za.co.armandkamffer.mamba.Commands.Models.CommandMessages.PlanningSkipVoteMessage;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandReceive;
 import za.co.armandkamffer.mamba.Commands.Models.Commands.PlanningHostCommandSend;
 
@@ -75,5 +76,9 @@ public class PlanningHostWebSocketMessageParser {
 
     public PlanningRemoveParticipantMessage parseRemoveParticipantMessage(JsonObject messageString) {
         return new Gson().fromJson(messageString, PlanningRemoveParticipantMessage.class);
+    }
+
+    public PlanningSkipVoteMessage parseSkipVoteMessage(JsonObject messageString) {
+        return new Gson().fromJson(messageString, PlanningSkipVoteMessage.class);
     }
 }
