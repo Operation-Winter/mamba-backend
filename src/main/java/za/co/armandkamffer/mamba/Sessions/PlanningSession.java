@@ -125,6 +125,10 @@ public class PlanningSession {
             case SKIP_VOTE:
                 executeSkipVoteCommand(command);
                 break;
+
+            default:
+                logger.warn("Unprocessed host command received on {}", command.type, sessionID);
+                break;
         }
     }
 
@@ -133,7 +137,7 @@ public class PlanningSession {
             return;
         }
 
-        Optional<PlanningTicketVote> existingVote = ticket.ticketVotes.stream().filter(x -> x.user == user).findFirst();
+        Optional<PlanningTicketVote> existingVote = getUserVote(user);
         if(existingVote.isPresent()) {
             ticket.ticketVotes.remove(existingVote.get());
         }
@@ -146,6 +150,10 @@ public class PlanningSession {
         }
 
         sendCurrentStateToAll();
+    }
+
+    private Optional<PlanningTicketVote> getUserVote(PlanningUser user) {
+        return ticket.ticketVotes.stream().filter(x -> x.user == user).findFirst();
     }
 
     private void executeStartSessionCommand(PlanningHostCommandReceive command) {
@@ -172,6 +180,12 @@ public class PlanningSession {
     }
 
     private void executeFinishVotingCommand() {
+        for (PlanningUser user : users) {
+            Optional<PlanningTicketVote> existingVote = getUserVote(user);
+            if(!existingVote.isPresent()) {
+                addVote(ticket.identifier, user, null);
+            }
+        }
         state = PlanningSessionState.VOTING_FINISHED;
         sendCurrentStateToAll();
     }
